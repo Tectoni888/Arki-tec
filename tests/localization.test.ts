@@ -3,6 +3,7 @@ import { get } from 'svelte/store';
 import { initializeLocale, locale, t, translate, type Locale } from '../src/lib/i18n';
 import { en } from '../src/lib/i18n/locales/en';
 import { pt } from '../src/lib/i18n/locales/pt';
+import { es } from '../src/lib/i18n/locales/es';
 
 afterEach(() => { vi.unstubAllGlobals(); locale.set('en'); });
 
@@ -17,6 +18,11 @@ describe('locale preferences', () => {
     for (const key of Object.keys(en) as (keyof typeof en)[]) {
       expect(pt[key].trim()).not.toBe('');
       expect(pt[key].match(/\{\w+\}/g) ?? []).toEqual(en[key].match(/\{\w+\}/g) ?? []);
+    }
+    expect(Object.keys(es).sort()).toEqual(Object.keys(en).sort());
+    for (const key of Object.keys(en) as (keyof typeof en)[]) {
+      expect(es[key].trim()).not.toBe('');
+      expect([...(es[key].match(/\{\w+\}/g) ?? [])].sort()).toEqual([...(en[key].match(/\{\w+\}/g) ?? [])].sort());
     }
   });
   it('updates subscribed text, persists the choice and sets document language', () => {
@@ -38,9 +44,9 @@ describe('locale preferences', () => {
     expect(get(locale)).toBe('pt');
     getItem.mockReturnValue('fr');
     initializeLocale();
-    expect(get(locale)).toBe('en');
+    expect(get(locale)).toBe('es'); // Arki-Tec: español por defecto
     locale.set('fr' as Locale);
-    expect(get(locale)).toBe('en');
+    expect(get(locale)).toBe('es');
   });
   it('works in memory when storage access throws', () => {
     vi.stubGlobal('localStorage', { getItem() { throw new Error('denied'); }, setItem() { throw new Error('quota'); } });

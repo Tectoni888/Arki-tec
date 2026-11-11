@@ -340,7 +340,7 @@
                 const generation = ++shortcutCopyGeneration;
                 shortcutCopyState = 'copying';
                 const text = [
-                  $t('shortcuts.title') + ' — OpenPlan3D',
+                  $t('shortcuts.title') + ' — Arki-Tec',
                   '',
                   '── ' + $t('shortcuts.tools') + ' ──',
                   "V          " + $t('shortcuts.select'),

@@ -155,7 +155,7 @@
     if (diffHr < 24) return translate(language, 'library.hours', { count: diffHr });
     const diffDay = Math.floor(diffHr / 24);
     if (diffDay < 7) return translate(language, 'library.days', { count: diffDay });
-    return date.toLocaleDateString(language === 'pt' ? 'pt-BR' : 'en');
+    return date.toLocaleDateString(language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en');
   }
 </script>
 

@@ -33,7 +33,7 @@
 
   function formatTime(ts: number, language: Locale) {
     const d = new Date(ts);
-    return d.toLocaleTimeString(language === 'pt' ? 'pt-BR' : 'en', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return d.toLocaleTimeString(language === 'pt' ? 'pt-BR' : language === 'es' ? 'es-ES' : 'en', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
   async function handleClick(index: number) {

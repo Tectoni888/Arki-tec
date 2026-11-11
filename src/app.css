@@ -2,6 +2,21 @@
 
 @custom-variant dark (&.dark);
 
+/* Marca Arki-Tec: grises con acento azul claro. Los componentes usan la escala
+   "blue" de Tailwind; aquí se sustituye por tonos más claros. */
+@theme {
+  --color-blue-50: #f0f9ff;
+  --color-blue-100: #e0f2fe;
+  --color-blue-200: #bae6fd;
+  --color-blue-300: #7dd3fc;
+  --color-blue-400: #38bdf8;
+  --color-blue-500: #0ea5e9;
+  --color-blue-600: #0284c7;
+  --color-blue-700: #0369a1;
+  --color-blue-800: #075985;
+  --color-blue-900: #0c4a6e;
+}
+
 html, body {
   margin: 0;
   padding: 0;
