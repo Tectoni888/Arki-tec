@@ -11,7 +11,9 @@ export const config = { maxDuration: 60 };
 const MAX_BASE64 = 5_500_000; // ≈ 4 MB de imagen
 const TIPOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-export const POST: RequestHandler = async ({ request, fetch }) => {
+export const POST: RequestHandler = async ({ request }) => {
+  // Se usa el fetch global, no el del evento de SvelteKit: ese reenvía la cabecera
+  // Origin del navegador y Anthropic trata la llamada como hecha desde un navegador.
   // Al pegar la clave es fácil arrastrar espacios, saltos de línea o comillas.
   const clave = (env.ANTHROPIC_API_KEY ?? '').trim().replace(/^["']|["']$/g, '');
   if (!clave) {
