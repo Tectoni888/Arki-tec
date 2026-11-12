@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { openProject } from '$lib/services/projectOpening';
-  import { LADOS, proyectoDesdeCroquis, type EstanciaCroquis, type LadoPared, type LecturaCroquis } from '$lib/presupuesto/croquis';
+  import { DIRECCIONES, LADOS, proyectoDesdeCroquis, superficieCroquis, trazarContorno, type EstanciaCroquis, type LecturaCroquis } from '$lib/presupuesto/croquis';
 
   const vida = new AbortController();
   onDestroy(() => vida.abort());
@@ -17,7 +17,14 @@
   let creando = $state(false);
 
   const validas = $derived(estancias.filter(e => e.ancho >= 30 && e.largo >= 30));
-  const m2 = (e: EstanciaCroquis) => (e.ancho * e.largo / 10_000).toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  const m2 = (e: EstanciaCroquis) => superficieCroquis(e).toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  const traza = (e: EstanciaCroquis) => e.contorno?.length ? trazarContorno(e.contorno) : null;
+  /** Pasa de rectángulo a contorno editable (para estancias en L, en U…). */
+  function formaLibre(e: EstanciaCroquis) {
+    e.contorno = [{ dir: 'derecha', largo: e.ancho }, { dir: 'abajo', largo: e.largo }, { dir: 'izquierda', largo: e.ancho }, { dir: 'arriba', largo: e.largo }];
+  }
+  function añadirTramo(e: EstanciaCroquis) { e.contorno = [...(e.contorno ?? []), { dir: 'derecha', largo: 100 }]; }
+  function quitarTramo(e: EstanciaCroquis, i: number) { e.contorno = e.contorno!.filter((_, k) => k !== i); }
 
   /** Reduce la foto a 1600 px de lado mayor: se lee igual y sube mucho más rápido. */
   async function prepararFoto(archivo: File): Promise<string> {
@@ -115,18 +122,47 @@
                 <label class="text-xs text-gray-500 grow min-w-32">Nombre
                   <input class="mt-1 block w-full rounded border border-gray-300 p-1.5 text-sm text-gray-800" bind:value={e.nombre} />
                 </label>
+                {#if !e.contorno?.length}
                 <label class="text-xs text-gray-500 w-20">Ancho cm
                   <input type="number" min="30" class="mt-1 block w-full rounded border border-gray-300 p-1.5 text-sm text-gray-800" bind:value={e.ancho} />
                 </label>
                 <label class="text-xs text-gray-500 w-20">Largo cm
                   <input type="number" min="30" class="mt-1 block w-full rounded border border-gray-300 p-1.5 text-sm text-gray-800" bind:value={e.largo} />
                 </label>
+                {/if}
                 <label class="text-xs text-gray-500 w-20">Alto cm
                   <input type="number" min="150" placeholder="250" class="mt-1 block w-full rounded border border-gray-300 p-1.5 text-sm text-gray-800" bind:value={e.alto} />
                 </label>
                 <span class="text-sm font-medium w-20 text-right pb-1.5">{m2(e)} m²</span>
                 <button class="text-sm text-red-600 hover:underline pb-1.5" onclick={() => quitar(i)} aria-label="Quitar {e.nombre}">Quitar</button>
               </div>
+              {#if e.contorno?.length}
+                {@const t = traza(e)!}
+                <div class="mt-3">
+                  <p class="text-xs text-gray-500 mb-1">Contorno: paredes en orden, en el sentido de las agujas del reloj, desde la esquina superior izquierda.</p>
+                  <div class="flex flex-wrap gap-2">
+                    {#each e.contorno as tramo, k}
+                      <span class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                        {k + 1}.
+                        <select class="rounded border border-gray-300 bg-white p-0.5" bind:value={tramo.dir} aria-label="Dirección del tramo {k + 1}">
+                          {#each DIRECCIONES as d}<option value={d}>{d === 'derecha' ? '→ derecha' : d === 'abajo' ? '↓ abajo' : d === 'izquierda' ? '← izquierda' : '↑ arriba'}</option>{/each}
+                        </select>
+                        <input type="number" min="1" class="w-16 rounded border border-gray-300 p-0.5" bind:value={tramo.largo} aria-label="Longitud del tramo {k + 1} en cm" /> cm
+                        <button class="text-red-600" onclick={() => quitarTramo(e, k)} aria-label="Quitar tramo {k + 1}">×</button>
+                      </span>
+                    {/each}
+                    <button class="text-xs text-blue-700 hover:underline" onclick={() => añadirTramo(e)}>＋ Tramo</button>
+                  </div>
+                  {#if t.cierra}
+                    <p class="mt-2 text-xs text-green-700">✓ El contorno cierra. Superficie: {m2(e)} m².</p>
+                  {:else}
+                    <p class="mt-2 text-xs text-red-700" role="alert">✗ El contorno no cierra: {t.desfaseX === 0 ? 'cuadra en horizontal' : `${Math.abs(t.desfaseX)} cm de diferencia en horizontal`} y {t.desfaseY === 0 ? 'cuadra en vertical' : `${Math.abs(t.desfaseY)} cm de diferencia en vertical`}. Corrige las cotas; mientras tanto se usaría el rectángulo de {e.ancho} × {e.largo} cm.</p>
+                  {/if}
+                  <button class="mt-1 text-xs text-gray-500 hover:underline" onclick={() => { e.contorno = undefined; }}>Volver a rectángulo</button>
+                </div>
+              {:else}
+                <button class="mt-2 text-xs text-blue-700 hover:underline" onclick={() => formaLibre(e)}>No es rectangular (en L, en U…)</button>
+              {/if}
               {#if e.dudosa}<p class="mt-2 text-xs text-amber-800">⚠ La IA no está segura de alguna medida de esta estancia.</p>{/if}
               {#each [['puertas', 'Puerta'], ['ventanas', 'Ventana']] as const as [tipo, etiqueta]}
                 <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
