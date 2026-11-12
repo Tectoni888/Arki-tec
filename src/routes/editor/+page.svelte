@@ -202,7 +202,18 @@
     };
     window.addEventListener('beforeunload', onBeforeUnload);
     document.addEventListener('visibilitychange', onVisibilityChange);
+    // Peticiones del buscador y de la barra superior.
+    const alAbrir = (e: Event) => {
+      const que = (e as CustomEvent<string>).detail;
+      if (que === 'buscar') commandPaletteOpen = true;
+      else if (que === 'capas') showLayers = true;
+      else if (que === 'historial') showUndoHistory = true;
+      else if (que === 'imprimir') printOpen = true;
+      else if (que === 'atajos') showHelp = true;
+    };
+    window.addEventListener('arkitec-abrir', alAbrir);
     return () => {
+      window.removeEventListener('arkitec-abrir', alAbrir);
       stopAgentBridge();
       stopSyncProjectUrl();
       window.removeEventListener('beforeunload', onBeforeUnload);

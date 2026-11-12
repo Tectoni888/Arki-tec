@@ -270,6 +270,12 @@
     initVersionHistory();
     const openSettings = () => { if (!hasOpenModal()) settingsOpen = true; };
     window.addEventListener('open-settings', openSettings);
+    const alAbrir = (e: Event) => {
+      const que = (e as CustomEvent<string>).detail;
+      if (que === 'presupuesto') presupuestoOpen = true;
+      else if (que === 'mediciones') areaOpen = true;
+    };
+    window.addEventListener('arkitec-abrir', alAbrir);
 
     // Update relative timestamp every 15s
     const interval = setInterval(updateLastSavedText, 15000);
@@ -298,6 +304,7 @@
     document.addEventListener('keydown', handleKeydown, true);
     return () => {
       window.removeEventListener('open-settings', openSettings);
+      window.removeEventListener('arkitec-abrir', alAbrir);
       if (get(saveState) === 'unsaved') void autoSave();
       stopAutoSave();
       stopVersionHistory();
@@ -415,8 +422,19 @@
         </div>
       {/if}
     </div>
-    <span class="text-white/40 text-[10px] ml-1">{floors.length}F</span>
+    <span class="text-white/60 text-xs ml-1.5 whitespace-nowrap" title="Número de plantas del proyecto">{floors.length} {floors.length === 1 ? 'planta' : 'plantas'}</span>
   </div>
+
+  <!-- Buscador general -->
+  <button
+    onclick={() => window.dispatchEvent(new CustomEvent('arkitec-abrir', { detail: 'buscar' }))}
+    class="ml-2 flex items-center gap-2 px-2.5 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-sm transition-colors max-md:hidden"
+    title="Buscar herramientas, muebles y funciones (Ctrl+K)"
+    aria-label="Buscar"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <span class="max-xl:hidden">Buscar…</span>
+  </button>
 
   <div class="flex-1"></div>
 
@@ -568,6 +586,8 @@
     </button>
     {#if moreOpen}
       <div data-popup="menu" class="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-56 z-50 max-h-[70vh] overflow-y-auto">
+        <button class="w-full px-3 py-2 text-sm font-medium text-blue-700 hover:bg-gray-100 text-left" onclick={() => { moreOpen = false; window.dispatchEvent(new CustomEvent('arkitec-abrir', { detail: 'buscar' })); }}>🔍 Buscar…</button>
+        <div class="h-px bg-gray-100 my-1"></div>
         {#if floors.length > 1 || mode === '2d'}
           <div class="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{$t('floorControls.floors')}</div>
           {#each floors as fl}
