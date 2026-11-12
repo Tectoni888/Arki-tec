@@ -182,6 +182,12 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           {$t('library.templates')}
         </button>
+        <a
+          href="{base}/croquis"
+          class="px-4 py-2.5 bg-white/10 text-white rounded-lg hover:bg-white/20 font-medium text-sm transition-all flex items-center gap-2 border border-white/20"
+        >
+          📝 Leer croquis
+        </a>
         <button
           bind:this={newProjectButton}
           onclick={newProject}
