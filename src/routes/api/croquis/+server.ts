@@ -23,30 +23,43 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
   if (!m || !TIPOS.has(m[1])) return json({ error: 'Envía una foto en JPG, PNG o WebP.' }, { status: 400 });
   if (m[2].length > MAX_BASE64) return json({ error: 'La foto es demasiado grande.' }, { status: 413 });
 
+  const cuerpoIA = JSON.stringify({
+    model: env.CROQUIS_MODEL || 'claude-sonnet-5-5',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } },
+      { type: 'text', text: PROMPT_CROQUIS },
+    ] }],
+  });
+  // Las claves ligadas a una cuenta (sk-ant-usr-…) pueden exigir el espacio de
+  // trabajo o la cabecera Authorization; se prueba x-api-key y, si Anthropic
+  // responde 401, se reintenta una vez con ambas cabeceras.
+  const llamar = (conBearer: boolean) => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json', 'x-api-key': clave, 'anthropic-version': '2023-06-01',
+      ...(conBearer ? { authorization: `Bearer ${clave}` } : {}),
+      ...(env.ANTHROPIC_WORKSPACE_ID ? { 'anthropic-workspace-id': env.ANTHROPIC_WORKSPACE_ID.trim() } : {}),
+    },
+    body: cuerpoIA,
+    signal: AbortSignal.timeout(50_000),
+  });
   let respuesta: Response;
   try {
-    respuesta = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': clave, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: env.CROQUIS_MODEL || 'claude-sonnet-5-5',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } },
-          { type: 'text', text: PROMPT_CROQUIS },
-        ] }],
-      }),
-      signal: AbortSignal.timeout(55_000),
-    });
+    respuesta = await llamar(false);
+    if (respuesta.status === 401) respuesta = await llamar(true);
   } catch {
     return json({ error: 'No se pudo contactar con el servicio de IA. Vuelve a intentarlo.' }, { status: 502 });
   }
   if (!respuesta.ok) {
-    const detalle = respuesta.status === 401 ? `Anthropic rechaza la clave de API (empieza por "${clave.slice(0, 7)}…", ${clave.length} caracteres). Debe empezar por "sk-ant-" y estar completa.`
+    // Mensaje propio de Anthropic: ayuda a distinguir clave, saldo, modelo o permisos.
+    const fallo = await respuesta.json().catch(() => null);
+    const motivo = typeof fallo?.error?.message === 'string' ? fallo.error.message.slice(0, 300) : '';
+    const detalle = respuesta.status === 401 ? `Anthropic rechaza la clave de API (empieza por "${clave.slice(0, 11)}…", ${clave.length} caracteres).`
       : respuesta.status === 404 ? 'El modelo configurado no existe; revisa CROQUIS_MODEL.'
       : respuesta.status === 429 ? 'Se ha superado el límite de uso de la API.'
       : `El servicio de IA respondió con un error (${respuesta.status}).`;
-    return json({ error: detalle }, { status: 502 });
+    return json({ error: motivo ? `${detalle} Anthropic dice: «${motivo}»` : detalle }, { status: 502 });
   }
   const datos = await respuesta.json().catch(() => null);
   const texto: string = datos?.content?.find?.((b: { type: string }) => b.type === 'text')?.text ?? '';
