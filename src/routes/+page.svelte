@@ -170,9 +170,12 @@
   <!-- Header -->
   <div class="bg-gradient-to-r from-slate-800 to-slate-700 shadow-sm">
     <div class="max-w-5xl mx-auto px-6 py-5 flex flex-wrap gap-4 items-center justify-between">
-      <div>
+      <div class="flex items-center gap-3">
+        <img src="{base}/logo.png" alt="" width="52" height="52" class="rounded-xl" />
+        <div>
         <h1 class="text-2xl font-bold text-white">{$t('library.title')}</h1>
         <p class="text-sm text-white/50 mt-0.5">{loading ? $t('library.loading') : $t(projects.length === 1 ? 'library.countOne' : 'library.countMany', { count: projects.length })}</p>
+        </div>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <button
