@@ -16,9 +16,23 @@
   let nombreProyecto = $state('Croquis');
   let creando = $state(false);
 
-  const validas = $derived(estancias.filter(e => e.ancho >= 30 && e.largo >= 30));
-  const m2 = (e: EstanciaCroquis) => superficieCroquis(e).toLocaleString('es-ES', { maximumFractionDigits: 2 });
   const traza = (e: EstanciaCroquis) => e.contorno?.length ? trazarContorno(e.contorno) : null;
+  const validas = $derived(estancias.filter(e => e.contorno?.length ? traza(e)!.cierra : e.ancho >= 30 && e.largo >= 30));
+  /** Estancias cuyo contorno no cierra: hay que corregirlas antes de crear el plano. */
+  const sinCerrar = $derived(estancias.filter(e => e.contorno?.length && !traza(e)!.cierra));
+
+  /** Cambios de UNA cota que harían cerrar el contorno en un eje. Decide el usuario cuál es la equivocada. */
+  function arreglos(e: EstanciaCroquis) {
+    const t = traza(e);
+    if (!t || t.cierra) return [];
+    const lista: { tramo: number; antes: number; nuevo: number }[] = [];
+    e.contorno!.forEach((tr, k) => {
+      const d = tr.dir === 'derecha' ? -t.desfaseX : tr.dir === 'izquierda' ? t.desfaseX : tr.dir === 'abajo' ? -t.desfaseY : t.desfaseY;
+      if (d !== 0 && tr.largo + d > 0) lista.push({ tramo: k, antes: tr.largo, nuevo: tr.largo + d });
+    });
+    return lista;
+  }
+  const m2 = (e: EstanciaCroquis) => superficieCroquis(e).toLocaleString('es-ES', { maximumFractionDigits: 2 });
   /** Pasa de rectángulo a contorno editable (para estancias en L, en U…). */
   function formaLibre(e: EstanciaCroquis) {
     e.contorno = [{ dir: 'derecha', largo: e.ancho }, { dir: 'abajo', largo: e.largo }, { dir: 'izquierda', largo: e.ancho }, { dir: 'arriba', largo: e.largo }];
@@ -156,7 +170,15 @@
                   {#if t.cierra}
                     <p class="mt-2 text-xs text-green-700">✓ El contorno cierra. Superficie: {m2(e)} m².</p>
                   {:else}
-                    <p class="mt-2 text-xs text-red-700" role="alert">✗ El contorno no cierra: {t.desfaseX === 0 ? 'cuadra en horizontal' : `${Math.abs(t.desfaseX)} cm de diferencia en horizontal`} y {t.desfaseY === 0 ? 'cuadra en vertical' : `${Math.abs(t.desfaseY)} cm de diferencia en vertical`}. Corrige las cotas; mientras tanto se usaría el rectángulo de {e.ancho} × {e.largo} cm.</p>
+                    <div class="mt-2 rounded border border-red-300 bg-red-50 p-2 text-xs text-red-800" role="alert">
+                      <p class="font-semibold">✗ Las medidas no cuadran entre sí: {t.desfaseX === 0 ? '' : `${Math.abs(t.desfaseX)} cm de diferencia en horizontal`}{t.desfaseX !== 0 && t.desfaseY !== 0 ? ' y ' : ''}{t.desfaseY === 0 ? '' : `${Math.abs(t.desfaseY)} cm en vertical`}.</p>
+                      <p class="mt-1">Con estas cotas la estancia no se puede dibujar. Alguna está mal apuntada o mal leída. Elige cuál corregir (o cámbiala a mano arriba):</p>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        {#each arreglos(e) as a}
+                          <button class="rounded bg-white border border-red-300 px-2 py-1 hover:bg-red-100" onclick={() => { e.contorno![a.tramo].largo = a.nuevo; }}>Tramo {a.tramo + 1}: {a.antes} → {a.nuevo} cm</button>
+                        {/each}
+                      </div>
+                    </div>
                   {/if}
                   <button class="mt-1 text-xs text-gray-500 hover:underline" onclick={() => { e.contorno = undefined; }}>Volver a rectángulo</button>
                 </div>
@@ -195,6 +217,9 @@
             {creando ? 'Creando…' : `Crear plano con ${validas.length} estancia${validas.length === 1 ? '' : 's'}`}
           </button>
         </div>
+        {#if sinCerrar.length}
+          <p class="mt-2 text-sm text-red-700" role="alert">Falta corregir {sinCerrar.length === 1 ? `"${sinCerrar[0].nombre}"` : `${sinCerrar.length} estancias`}: sus medidas no cuadran y no {sinCerrar.length === 1 ? 'se incluirá' : 'se incluirán'} en el plano hasta que cierren.</p>
+        {/if}
         <p class="mt-2 text-xs text-gray-500">Las estancias se colocan en fila para que las muevas a su sitio en el editor. Las mediciones están en «Resumen de superficies».</p>
       </section>
     {/if}
