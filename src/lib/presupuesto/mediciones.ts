@@ -56,6 +56,13 @@ export interface MedicionPlanta {
   avisos: string[];
 }
 
+/** Nombres que pone el importador de escaneos, en español. */
+const NOMBRES: Record<string, string> = {
+  'Living Room': 'Salón', Bedroom: 'Dormitorio', Kitchen: 'Cocina', Bathroom: 'Baño', 'Dining Room': 'Comedor',
+  Laundry: 'Lavadero', Office: 'Despacho', Hallway: 'Pasillo', Garage: 'Garaje', Closet: 'Armario',
+  Pantry: 'Despensa', Entryway: 'Recibidor', unidentified: 'Estancia',
+};
+
 const r2 = (v: number) => Math.round(v * 100) / 100;
 const dist = (a: Point, b: Point) => Math.hypot(b.x - a.x, b.y - a.y);
 
@@ -107,7 +114,8 @@ export function medirPlanta(floor: Floor): MedicionPlanta {
     const tramos = polygon.map((a, k) => {
       const b = polygon[(k + 1) % n];
       const w = paredDelTramo(a, b, candidatas);
-      return { a, b, largo: dist(a, b), alto: w?.height ?? 250, grosor: w?.thickness ?? 15 };
+      // Pared de escaneo sin grosor: su línea ya es la cara interior.
+      return { a, b, largo: dist(a, b), alto: w?.height ?? 250, grosor: w?.caraEscaneada ? 0 : w?.thickness ?? 15 };
     });
 
     // Perímetro interior: cada esquina acorta (convexa) o alarga (cóncava) el
@@ -145,13 +153,18 @@ export function medirPlanta(floor: Floor): MedicionPlanta {
       huecos.push({ id: v.id, tipo: 'ventana', ancho: r2(v.width / 100), alto: r2(v.height / 100), superficie: r2(v.width * v.height / 10_000) });
     }
 
-    const suelo = interiorRoomArea(polygon, agujeros[i], floor.walls);
+    // En un escaneo sin grosores el contorno ya es la cara interior: el suelo es
+    // el polígono tal cual, sin descontar medio grosor de pared.
+    const escaneada = paredes.length > 0 && paredes.every(w => w.caraEscaneada);
+    const suelo = escaneada
+      ? (Math.abs(areaConSigno(polygon)) - agujeros[i].reduce((s, h) => s + Math.abs(areaConSigno(h)), 0)) / 10_000
+      : interiorRoomArea(polygon, agujeros[i], floor.walls);
     if (suelo == null) avisos.push(`"${room.name}": no se pudo calcular el suelo (estancia no cerrada).`);
     const supHuecos = huecos.reduce((s, h) => s + h.ancho * h.alto, 0);
     const anchoPasos = huecos.filter(h => h.tipo !== 'ventana').reduce((s, h) => s + h.ancho, 0);
     const bruta = brutaCm2 / 10_000, perimetro = perimetroCm / 100;
     estancias.push({
-      id: room.id, nombre: room.name,
+      id: room.id, nombre: NOMBRES[room.name] ?? room.name,
       suelo: suelo == null ? null : r2(suelo), techo: suelo == null ? null : r2(suelo),
       perimetro: r2(perimetro), altura: r2(perimetro > 0 ? bruta / perimetro : 0),
       paredBruta: r2(bruta), paredNeta: r2(Math.max(0, bruta - supHuecos)),

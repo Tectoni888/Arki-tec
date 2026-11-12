@@ -50,4 +50,15 @@ describe('medirPlanta', () => {
       }
     }
   });
+
+  it('en un escaneo sin grosor de pared mide entre las caras escaneadas', () => {
+    // Pasillo escaneado de 4,63 × 0,99 m: las líneas son las caras, no los ejes.
+    const floor = createDefaultFloor();
+    floor.walls = [wall('a', 0, 0, 463, 0), wall('b', 463, 0, 463, 99), wall('c', 463, 99, 0, 99), wall('d', 0, 99, 0, 0)]
+      .map(w => ({ ...w, thickness: 15, caraEscaneada: true }));
+    const e = medirPlanta(floor).estancias[0];
+    expect(e.suelo).toBeCloseTo(4.58, 2);       // 4,63 × 0,99
+    expect(e.perimetro).toBeCloseTo(11.24, 2);  // 2 × (4,63 + 0,99)
+    expect(e.paredBruta).toBeCloseTo(28.1, 1);  // 11,24 × 2,5
+  });
 });

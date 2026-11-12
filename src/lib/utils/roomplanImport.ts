@@ -650,6 +650,7 @@ export function importRoomPlan(jsonData: any, options: RoomPlanImportOptions = r
       end,
       // Apple scans often report zero depth; edited iOS plans supply the actual thickness.
       thickness: rw.dimensions[2] > 0 ? centimetres(rw.dimensions[2]) : 15,
+      ...(rw.dimensions[2] > 0 ? {} : { caraEscaneada: true }),
       height,
       startHeight: height,
       endHeight: height,

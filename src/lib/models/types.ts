@@ -31,6 +31,9 @@ export interface Wall {
   startHeight?: number;
   endHeight?: number;
   color: string;
+  /** Arki-Tec: la línea de la pared es la cara interior medida por un escaneo
+   * LiDAR (que no da grosor), no su eje. Las mediciones no descuentan grosor. */
+  caraEscaneada?: boolean;
   /** Optional quadratic bezier control point for curved walls */
   curvePoint?: Point;
   texture?: string;
