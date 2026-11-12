@@ -1,6 +1,9 @@
 <script>
   import '../app.css';
-  import { initializeLocale } from '$lib/i18n';
+  import { initializeLocale, locale } from '$lib/i18n';
+  import { usarNombresEnEspanol } from '$lib/utils/defaultNames';
+  // Plantas y estancias nuevas reciben su nombre por defecto en el idioma elegido.
+  locale.subscribe(l => usarNombresEnEspanol(l === 'es'));
   onMount(initializeLocale);
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';

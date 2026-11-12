@@ -540,9 +540,10 @@
   <!-- Presupuesto -->
   <button
     onclick={() => presupuestoOpen = true}
-    class="px-2.5 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+    class="px-2 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors whitespace-nowrap shrink-0"
     title="Presupuesto"
-  >€ Presupuesto</button>
+    aria-label="Presupuesto"
+  >€<span class="hidden 2xl:inline">&nbsp;Presupuesto</span></button>
 
   <!-- Settings button -->
   <button
@@ -601,7 +602,6 @@
         <button class="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left" onclick={() => { versionHistoryOpen = true; moreOpen = false; }}>{$t('versions.title')}</button>
         <button class="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left" onclick={() => { areaOpen = true; moreOpen = false; }}>{$t('areaSummary.title')}</button>
         <button class="w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left" onclick={() => { settingsOpen = true; moreOpen = false; }}>{$t('settings.title')}</button>
-        <a href={USER_GUIDE_URL} target="_blank" rel="noopener" class="block w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left" onclick={() => { moreOpen = false; }}>{$t('help.userGuide')}</a>
       </div>
     {/if}
   </div>

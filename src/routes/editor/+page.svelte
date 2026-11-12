@@ -329,10 +329,6 @@
             <h2 class="text-lg font-bold text-slate-800">{$t('shortcuts.title')}</h2>
           </div>
           <div class="flex items-center gap-2">
-            <a
-              href={USER_GUIDE_URL} target="_blank" rel="noopener"
-              class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 transition-colors"
-            >{$t('help.userGuide')}</a>
             <button
               class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 transition-colors flex items-center gap-1.5"
               disabled={shortcutCopyState === 'copying'}

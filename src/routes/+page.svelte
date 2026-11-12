@@ -85,7 +85,11 @@
     });
   }
 
-  function createFromTemplate(index: number) { return createProject(houseTemplates[index].create); }
+  function createFromTemplate(index: number) {
+    const plantilla = houseTemplates[index];
+    // El proyecto toma el nombre de la plantilla en el idioma de la interfaz.
+    return createProject(() => { const p = plantilla.create(); const etiqueta = templateLabels[plantilla.name]; if (etiqueta) p.name = $t(etiqueta.name); return p; });
+  }
   function newProject() { return createProject(() => createDefaultProject('Untitled Project')); }
 
   /** The last copy Duplicate made: named in a status line and outlined in the list. */
@@ -214,8 +218,6 @@
       <div class="flex flex-wrap gap-4">
         {#if !libraryError}<button class="font-semibold text-blue-600 underline" onclick={backupLibrary}>{$t('library.backup')}</button>{/if}
         <button class="font-semibold text-blue-600 underline" onclick={() => openRestore()}>{$t('library.restore')}</button>
-        <button class="font-semibold text-blue-600 underline" onclick={openPackage}>{$t('library.package')}</button>
-        <a class="font-semibold text-blue-600 underline" href={USER_GUIDE_URL} target="_blank" rel="noopener">{$t('help.userGuide')}</a>
       </div>
     </div>
     <LibraryStorageNote active={projects.length > 0 && !libraryError} />

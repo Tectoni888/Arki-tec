@@ -1,3 +1,4 @@
+import { nombrePlanta, nombres } from '$lib/utils/defaultNames';
 import { selectionRotation } from '$lib/utils/selectionRotation';
 import { splitWallRoomReferences } from '$lib/utils/splitWallRooms';
 import { splitWallGeometry } from '$lib/utils/splitWallGeometry';
@@ -22,7 +23,7 @@ function uid(): string {
 
 export function createDefaultFloor(level = 0): Floor {
   const id = uid();
-  return { id, name: level === 0 ? 'Ground Floor' : `Floor ${level}`, level, walls: [], rooms: [], doors: [], windows: [], furniture: [], stairs: [], columns: [], guides: [], measurements: [], annotations: [], textAnnotations: [], groups: [] };
+  return { id, name: level >= 0 ? nombrePlanta(level) : `Floor ${level}`, level, walls: [], rooms: [], doors: [], windows: [], furniture: [], stairs: [], columns: [], guides: [], measurements: [], annotations: [], textAnnotations: [], groups: [] };
 }
 
 export function createDefaultProject(name = 'Untitled Project'): Project {

@@ -45,7 +45,10 @@
   }
 
   function startFromScratch() { return createProject(() => createDefaultProject('Untitled Project')); }
-  function useHouseTemplate(index: number) { return createProject(houseTemplates[index].create); }
+  function useHouseTemplate(index: number) {
+    const plantilla = houseTemplates[index];
+    return createProject(() => { const p = plantilla.create(); const etiqueta = templateLabels[plantilla.name]; if (etiqueta) p.name = $t(etiqueta.name); return p; });
+  }
 
   let showTemplates = $state(false);
   let showImport = $state(false);

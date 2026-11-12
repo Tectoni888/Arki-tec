@@ -1,3 +1,4 @@
+import { nombrePlanta, nombres } from '$lib/utils/defaultNames';
 import type { Project, Floor, Wall, Door, Window, FurnitureItem } from '$lib/models/types';
 
 function uid(): string {
@@ -28,7 +29,7 @@ function makeFloor(walls: Wall[], doors: Door[], windows: Window[], furniture: F
   const id = uid();
   return {
     id,
-    name: 'Ground Floor',
+    name: nombrePlanta(0),
     level: 0,
     walls,
     rooms: [],

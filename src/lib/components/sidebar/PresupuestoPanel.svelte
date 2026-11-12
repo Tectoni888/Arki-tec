@@ -46,6 +46,19 @@
     } catch { error = 'No se pudo generar el PDF.'; }
     finally { generando = false; }
   }
+  /** Reduce el logo a 600 px de lado mayor para que quepa en el almacenamiento del navegador. */
+  async function alElegirLogo(e: Event) {
+    const input = e.currentTarget as HTMLInputElement; const archivo = input.files?.[0]; input.value = '';
+    if (!archivo) return;
+    try {
+      const bitmap = await createImageBitmap(archivo);
+      const escala = Math.min(1, 600 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * escala); canvas.height = Math.round(bitmap.height * escala);
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      empresa.logo = canvas.toDataURL('image/png'); empresa.logoAncho = canvas.width; empresa.logoAlto = canvas.height;
+    } catch { error = 'No se pudo abrir el logo. Usa un PNG o JPG.'; }
+  }
   const campo = 'mt-1 block w-full rounded border border-gray-300 p-1.5 text-sm text-gray-800';
 </script>
 
@@ -120,6 +133,14 @@
   <details class="rounded-lg border border-gray-200 p-3">
     <summary class="text-sm font-semibold cursor-pointer">Datos de mi empresa</summary>
     <div class="grid grid-cols-2 gap-2 mt-2">
+      <div class="col-span-2 flex items-center gap-3 text-xs text-gray-500">
+        {#if empresa.logo}<img src={empresa.logo} alt="Logo de la empresa" class="h-12 max-w-32 object-contain border border-gray-200 rounded" />{/if}
+        <label class="px-3 py-1.5 rounded border border-gray-300 cursor-pointer hover:bg-gray-100 text-gray-700">{empresa.logo ? 'Cambiar logo' : 'Subir logo'}
+          <input type="file" accept="image/png,image/jpeg" class="hidden" onchange={alElegirLogo} />
+        </label>
+        {#if empresa.logo}<button class="text-red-600 hover:underline" onclick={() => { empresa.logo = undefined; empresa.logoAncho = undefined; empresa.logoAlto = undefined; }}>Quitar</button>{/if}
+        <span>Aparece en la cabecera del PDF.</span>
+      </div>
       <label class="text-xs text-gray-500 col-span-2">Nombre o razón social<input class={campo} bind:value={empresa.nombre} /></label>
       <label class="text-xs text-gray-500">NIF<input class={campo} bind:value={empresa.nif} /></label>
       <label class="text-xs text-gray-500">Teléfono<input class={campo} bind:value={empresa.telefono} /></label>

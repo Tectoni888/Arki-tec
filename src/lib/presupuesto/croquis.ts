@@ -220,4 +220,7 @@ Reglas:
 - Si las cotas escritas se contradicen entre sí (el contorno no cierra), pon las cotas tal como están escritas, marca "dudosa": true y explica en "notas" cuáles no cuadran. No las ajustes tú.
 - Omite "alto" si la altura no está escrita.
 - Pon el nombre que figure en el croquis; si no hay, usa "Estancia 1", "Estancia 2"...
+- Sé breve en "notas": como mucho seis, de una frase cada una, solo con lo que el usuario deba revisar.
+- La imagen puede ser un croquis a mano o un plano ya dibujado (impreso o fotografiado de una pantalla). Trátalos igual: lee las cotas escritas.
+- Si varias estancias comparten paredes, da cada estancia por separado con sus propias medidas interiores.
 - Si la imagen no es un croquis de planta con estancias, devuelve "estancias": [] y explícalo en "notas".`;

@@ -12,6 +12,12 @@ export function pdfPresupuesto(p: Presupuesto, empresa: DatosEmpresa): jsPDF {
   const gris = () => doc.setTextColor(100, 116, 139), negro = () => doc.setTextColor(30, 41, 59);
 
   // Cabecera: empresa a la izquierda, datos del presupuesto a la derecha.
+  // Logo de la empresa, si lo hay: hasta 45 × 20 mm, sin deformar.
+  if (empresa.logo && empresa.logoAncho && empresa.logoAlto) {
+    const escala = Math.min(45 / empresa.logoAncho, 20 / empresa.logoAlto);
+    const w = empresa.logoAncho * escala, h = empresa.logoAlto * escala;
+    try { doc.addImage(empresa.logo, empresa.logo.startsWith('data:image/png') ? 'PNG' : 'JPEG', M, y - 6, w, h); y += h + 2; } catch { /* logo ilegible: se omite */ }
+  }
   negro(); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
   doc.text(empresa.nombre || 'Presupuesto', M, y);
   doc.setFontSize(11); doc.text('PRESUPUESTO', M + W, y, { align: 'right' });

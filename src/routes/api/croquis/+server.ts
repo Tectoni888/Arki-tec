@@ -27,7 +27,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const cuerpoIA = JSON.stringify({
     model: env.CROQUIS_MODEL || 'claude-sonnet-5-5',
-    max_tokens: 2000,
+    // Un plano con varias estancias y sus notas no cabe en una respuesta corta.
+    max_tokens: 8000,
     messages: [{ role: 'user', content: [
       { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } },
       { type: 'text', text: PROMPT_CROQUIS },
@@ -68,6 +69,12 @@ export const POST: RequestHandler = async ({ request }) => {
   const inicio = texto.indexOf('{'), fin = texto.lastIndexOf('}');
   let leido: unknown = null;
   if (inicio >= 0 && fin > inicio) try { leido = JSON.parse(texto.slice(inicio, fin + 1)); } catch { /* se trata abajo */ }
-  if (!leido) return json({ error: 'La IA no devolvió una lectura utilizable. Prueba con una foto más nítida.' }, { status: 502 });
+  if (!leido) {
+    const motivo = datos?.stop_reason === 'max_tokens' ? 'La respuesta de la IA se cortó por ser demasiado larga. Prueba con menos estancias por foto.'
+      : datos?.stop_reason === 'refusal' ? 'La IA no ha querido procesar esta imagen.'
+      : texto.trim() ? `La IA respondió con texto en vez de con las medidas: «${texto.trim().slice(0, 200)}»`
+      : 'La IA no devolvió ninguna lectura. Prueba con una foto más nítida.';
+    return json({ error: motivo }, { status: 502 });
+  }
   return json(validarLectura(leido));
 };

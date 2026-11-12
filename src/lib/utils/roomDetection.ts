@@ -1,3 +1,4 @@
+import { nombrePlanta, nombres } from '$lib/utils/defaultNames';
 import type { Wall, Point, Room, Floor } from '$lib/models/types';
 import { wallPathSpans } from './wallProfiles';
 import { roomHoles, roomInteriorPoint } from './roomNesting';
@@ -300,7 +301,7 @@ function detectSplitRooms(splitEdges: Edge[]): RoomFace[] {
       polygons.push(poly);
       rooms.push({
         id: `room-${roomCount}-${Date.now()}`,
-        name: `Room ${roomCount}`,
+        name: `${nombres.estancia} ${roomCount}`,
         walls: uniqueWalls,
         floorTexture: 'hardwood',
         area: Math.round(area / 10000 * 100) / 100, // cm² to m²

@@ -14,7 +14,9 @@ export interface Linea {
   precio: number;
 }
 
-export interface DatosEmpresa { nombre: string; nif: string; direccion: string; telefono: string; email: string; condiciones: string }
+export interface DatosEmpresa { nombre: string; nif: string; direccion: string; telefono: string; email: string; condiciones: string;
+  /** Logo como data URL (PNG o JPEG) y sus proporciones. */
+  logo?: string; logoAncho?: number; logoAlto?: number }
 export interface Presupuesto {
   numero: string;
   fecha: string;
