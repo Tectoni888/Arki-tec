@@ -12,7 +12,9 @@ const MAX_BASE64 = 5_500_000; // ≈ 4 MB de imagen
 const TIPOS = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export const POST: RequestHandler = async ({ request, fetch }) => {
-  if (!env.ANTHROPIC_API_KEY) {
+  // Al pegar la clave es fácil arrastrar espacios, saltos de línea o comillas.
+  const clave = (env.ANTHROPIC_API_KEY ?? '').trim().replace(/^["']|["']$/g, '');
+  if (!clave) {
     return json({ error: 'La lectura con IA no está configurada: falta la variable ANTHROPIC_API_KEY en el servidor. Puedes añadir las estancias a mano.' }, { status: 503 });
   }
   let cuerpo: { imagen?: unknown };
@@ -25,7 +27,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
   try {
     respuesta = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      headers: { 'content-type': 'application/json', 'x-api-key': clave, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: env.CROQUIS_MODEL || 'claude-sonnet-5-5',
         max_tokens: 2000,
@@ -40,7 +42,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
     return json({ error: 'No se pudo contactar con el servicio de IA. Vuelve a intentarlo.' }, { status: 502 });
   }
   if (!respuesta.ok) {
-    const detalle = respuesta.status === 401 ? 'La clave de API no es válida.'
+    const detalle = respuesta.status === 401 ? `Anthropic rechaza la clave de API (empieza por "${clave.slice(0, 7)}…", ${clave.length} caracteres). Debe empezar por "sk-ant-" y estar completa.`
       : respuesta.status === 404 ? 'El modelo configurado no existe; revisa CROQUIS_MODEL.'
       : respuesta.status === 429 ? 'Se ha superado el límite de uso de la API.'
       : `El servicio de IA respondió con un error (${respuesta.status}).`;
