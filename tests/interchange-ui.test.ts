@@ -104,15 +104,11 @@ describe('downloadInterchangeJson', () => {
 });
 
 describe('user guide link', () => {
-  it('is one published address, shared by the editor and inlined where the export code must not load', () => {
+  it('Arki-Tec no enlaza la guía original en inglés desde su interfaz', () => {
     expect(USER_GUIDE_URL).toBe('https://github.com/laanlabs/openPlan3D/blob/main/docs/user-guide.md');
     const source = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
-    for (const file of ['src/lib/components/toolbar/TopBar.svelte', 'src/routes/editor/+page.svelte']) {
-      expect(source(file), file).toMatch(/USER_GUIDE_URL[^\n]*from '\$lib\/stores\/exportNotice'/);
-    }
-    expect(source('src/routes/+page.svelte')).toContain(`const USER_GUIDE_URL = '${USER_GUIDE_URL}'`);
     for (const file of ['src/lib/components/toolbar/TopBar.svelte', 'src/routes/editor/+page.svelte', 'src/routes/+page.svelte']) {
-      expect(source(file), file).toMatch(/href=\{USER_GUIDE_URL\} target="_blank" rel="noopener"/);
+      expect(source(file), file).not.toMatch(/href=\{USER_GUIDE_URL\}/);
     }
   });
 });
