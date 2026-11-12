@@ -28,6 +28,7 @@
   import SettingsDialog from './SettingsDialog.svelte';
   import AreaSummaryPanel from '$lib/components/sidebar/AreaSummaryPanel.svelte';
   import MedicionesPanel from '$lib/components/sidebar/MedicionesPanel.svelte';
+  import PresupuestoPanel from '$lib/components/sidebar/PresupuestoPanel.svelte';
   import { saveState, saveError, lastSavedAt, manualSave, autoSave, initAutoSave } from '$lib/stores/saveStatus';
   import { initVersionHistory, stopVersionHistory, snapshotOnAction } from '$lib/stores/versionHistory';
   import VersionHistoryPanel from './VersionHistoryPanel.svelte';
@@ -44,6 +45,7 @@
 
   let settingsOpen = $state(false);
   let areaOpen = $state(false);
+  let presupuestoOpen = $state(false);
   let versionHistoryOpen = $state(false);
 
   let projectName = $state('');
@@ -535,6 +537,13 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>
   </button>
 
+  <!-- Presupuesto -->
+  <button
+    onclick={() => presupuestoOpen = true}
+    class="px-2.5 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+    title="Presupuesto"
+  >€ Presupuesto</button>
+
   <!-- Settings button -->
   <button
     onclick={() => settingsOpen = true}
@@ -708,6 +717,20 @@
 
 <SettingsDialog bind:open={settingsOpen} />
 <VersionHistoryPanel bind:open={versionHistoryOpen} />
+
+{#if presupuestoOpen}
+<dialog use:modalDialog class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40" aria-label="Presupuesto" onclick={(e) => { if (e.target === e.currentTarget) presupuestoOpen = false; }} oncancel={(e) => { e.preventDefault(); presupuestoOpen = false; }}>
+  <div class="bg-white rounded-xl shadow-2xl w-[860px] max-w-[calc(100vw-1rem)] max-h-[92vh] overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200">
+      <h2 class="text-base font-semibold text-gray-800">€ Presupuesto</h2>
+      <button aria-label="Cerrar presupuesto" onclick={() => presupuestoOpen = false} class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <div class="overflow-y-auto max-h-[calc(92vh-52px)]">
+      <PresupuestoPanel />
+    </div>
+  </div>
+</dialog>
+{/if}
 
 {#if areaOpen}
 <dialog use:modalDialog class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/40" aria-label={$t('areaSummary.title')} onclick={(e) => { if (e.target === e.currentTarget) areaOpen = false; }} oncancel={(e) => { e.preventDefault(); areaOpen = false; }}>
